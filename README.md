@@ -22,7 +22,44 @@ Misalkan ada file bernama “halo” di dalam folder “INI_FOLDER”, dan key y
 
 “INI_FOLDER/halo” saat belum di-mount maka akan bernama “n,nsbZ]wio/QBE#”, saat telah di-mount maka akan otomatis terdekripsi kembali menjadi “INI_FOLDER/halo” .
 
-Perhatian: Karakter ‘/’ adalah karakter ilegal dalam penamaan file atau folder dalam *NIX, maka dari itu dapat diabaikan
+Perhatian: Karakter ‘/’ adalah karakter ilegal dalam penamaan file atau folder dalam NIX, maka dari itu dapat diabaikan
+
+
+### Solusi
+
+```
+char key[97] = "qE1~ YMUR2\"`hNIdPzi%^t@(Ao:=CQ,nx4S[7mHFye#aT6+v)DfKL$r?bkOGB>}!9_wV']jcp5JZ&Xl|\\8s;g<{3.u*W-0";
+
+void enc(char* char_enc)
+{
+	if(!strcmp(char_enc,".") || !strcmp(char_enc,"..")) // spy tdk enc node
+	return;
+	for(int i=0;i<strlen(char_enc);i++)
+	{
+		for(int j=0;j<94;j++){
+			if(char_enc[i]==key[j]){
+				char_enc[i] = key[(j+17)%94];
+				break;
+			}
+		}
+	}
+}
+
+void dec(char* char_dec)
+{
+	if(!strcmp(char_dec,".") || !strcmp(char_dec,"..")) return;
+	for(int i=0;i<strlen(char_dec);i++)
+	{
+		for(int j=0;j<94;j++){
+			if(char_dec[i]==key[j]){
+				char_dec[i] = key[(j+77)%94];
+				break;
+			}
+		}
+	}
+}
+```
+
 
 ### 2. 
 
@@ -51,20 +88,144 @@ Sebelum diterapkannya file system ini, Atta pernah diserang oleh hacker LAPTOP_R
 
 Jika ditemukan file dengan spesifikasi tersebut ketika membuka direktori, Atta akan menyimpan nama file, group ID, owner ID, dan waktu terakhir diakses dalam file “filemiris.txt” (format waktu bebas, namun harus memiliki jam menit detik dan tanggal) lalu menghapus “file bahaya” tersebut untuk mencegah serangan lanjutan dari LAPTOP_RUSAK.
 
+### Solusi
+
+Pada fungsi xmp_readdir:
+
+```
+struct stat tmp;
+		stat(file,&tmp);
+		struct passwd *name = getpwuid(tmp.st_uid);
+    	struct group *grup = getgrgid(tmp.st_gid);
+		
+		if( (strcmp(name->pw_name,"chipset") == 0 || strcmp(name->pw_name,"ic_controller") == 0) 
+			&& strcmp(grup->gr_name,"rusak")==0 
+			&& ((tmp.st_mode & R_OK) == 0) )
+		{
+			printf("%s\n",file);
+			char root[1000];
+			strcpy(root,dirpath);
+			char note[10000] = "/filemiris.txt";
+			enc(note);
+			strcat(root,note);
+			FILE * fp;
+   			fp = fopen (root, "a+");
+			char t[1000];
+			time_t now = time(NULL);
+			strftime(t, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
+			char buffer[1000];
+			sprintf(buffer,"%s%s-%d-%d-%s",path,katak,name->pw_uid,grup->gr_gid,t);
+			fprintf(fp,"%s\n",buffer);
+			remove(file);
+			fclose(fp);
+			chown(root,1000,1000);
+		}
+		else{
+			memset(&st, 0, sizeof(st));
+			st.st_ino = de->d_ino;
+			st.st_mode = de->d_type << 12;
+			if (filler(buf, katak, &st, 0))
+				break;
+		}
+	}
+```
+
 ### 4. 
 
 Pada folder YOUTUBER, setiap membuat folder permission foldernya akan otomatis menjadi 750. Juga ketika membuat file permissionnya akan otomatis menjadi 640 dan ekstensi filenya akan bertambah “.iz1”. File berekstensi “.iz1” tidak bisa diubah permissionnya dan memunculkan error bertuliskan “File ekstensi iz1 tidak boleh diubah permissionnya.”
 
+### Solusi
+
+Membuat folder:
+
+```
+static int xmp_mkdir(const char *path, mode_t mode)
+{
+	int res;
+    char fpath[1000];
+    char name[1000];
+	sprintf(name,"%s",path);
+	if(strlen(name)>9 && strncmp(name,"/YOUTUBER",9)==0) // bahwa foldernya di dlm youtuber
+	{
+		enc(name);
+		sprintf(fpath, "%s%s",dirpath,name);
+		res = mkdir(fpath, 0750);	
+	}
+	else{
+    	enc(name);
+		sprintf(fpath, "%s%s",dirpath,name);
+		res = mkdir(fpath, mode);
+		if (res == -1)
+			return -errno;
+	}
+	return 0;
+}
+```
+
+Membuat file:
+
+```
+static int xmp_create(const char* path, mode_t mode, struct fuse_file_info* fi)
+{
+
+    (void) fi;
+    char fpath[1000];
+    char name[1000];
+	sprintf(name,"%s",path);
+    int res;
+	if(strlen(name)>9 && strncmp(name,"/YOUTUBER",9)==0)
+	{
+		strcat(name,".iz1");
+		enc(name);
+		sprintf(fpath, "%s%s",dirpath,name);
+    	res = creat(fpath, 0640);
+	}
+	else{
+    	enc(name);
+		sprintf(fpath, "%s%s",dirpath,name);
+    	res = creat(fpath, mode);
+	}
+    if(res == -1)
+	return -errno;
+
+    close(res);
+
+    return 0;
+}
+```
+
+Melarang file yang akan diubah permissionnya:
+
+```
+static int xmp_chmod(const char *path, mode_t mode)
+{
+	int res;
+    char fpath[1000];
+    char name[1000];
+	sprintf(name,"%s",path);
+	if(strcmp(name+strlen(name)-4,".iz1")==0)
+	{
+		pid_t child1;
+		child1=fork();
+		if(child1==0){
+			execl("/usr/bin/zenity","/usr/bin/zenity","--error","--text=File ekstensi iz1 tidak boleh diubah permissionnya.","--title=Tidak bisa merubah",NULL);
+		}
+		else{
+			wait(NULL);
+		}
+	}
+	else{
+    	enc(name);
+		sprintf(fpath, "%s%s",dirpath,name);
+		res = chmod(fpath, mode);
+	}
+	if (res == -1)
+		return -errno;
+
+	return 0;
+}
+```
+
 ### 5. 
 
 Ketika mengedit suatu file dan melakukan save, maka akan terbuat folder baru bernama Backup kemudian hasil dari save tersebut akan disimpan pada backup dengan nama namafile_[timestamp].ekstensi. Dan ketika file asli dihapus, maka akan dibuat folder bernama RecycleBin, kemudian file yang dihapus beserta semua backup dari file yang dihapus tersebut (jika ada) di zip dengan nama namafile_deleted_[timestamp].zip dan ditaruh kedalam folder RecycleBin (file asli dan backup terhapus). Dengan format [timestamp] adalah yyyy-MM-dd_HH:mm:ss
-
-
-#### Catatan:
-
-* Semua nama file dan folder yang terdapat pada soal harus memenuhi syarat soal no. 1 (terenkripsi saat belum di-mount dan terdekripsi saat di-mount)
-* Tidak diperkenankan menggunakan system() dan exec*(), kecuali ada pengecualian di butir soal.
-* Untuk soal nomor 3 diharapkan secara manual membuat user dan group-nya. Pengecekan file dilakukan setiap membuka direktori.
-* Untuk soal nomor 4 dan 5 diperbolehkan menggunakan exec*().
-* Pengerjaan hanya dilakukan dalam 1 file program C dengan format nama AFSHiaAP_[Kelompok].c . 
-* File System AFSHiaAP mengarah ke folder /home/[user]/shift4.
