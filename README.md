@@ -27,6 +27,15 @@ Perhatian: Karakter ‘/’ adalah karakter ilegal dalam penamaan file atau fold
 
 ### Solusi
 
+* Kita inisialisasi daftar karakter yang tersedia untuk menjadi nama file yang nantinya di enkripsi dan dekripsi. 
+* Setelah itu buat fungsi enskripsi dan dekripsi
+* Kedua fungsi tersebut dibuat dengan aturan caesar cipher
+* Node . dan .. dipastikan tidak akan terenkripsi
+* Fungsi akan memeriksa satu persatu karakter yang akan dienkripsi apakah ada dalam daftar karakter yang tersedia
+* Akan terjadi perulangan sebanyak panjang karakter yang dienkripsi dan sepanjang karakter yang tersedia
+* Untuk enkripsi, kita gunakan rumus enkripsi ``(x + key) mod 94`` dan dekripsi ``(x - key) mod 94`` tetapi disini saya menggunakan rumus lain untuk dekripsi yang namun dapat diartikan sama yaitu ``(x + (94-key)) mod 94``
+* Fungsi enc atau enkripsi akan dipanggil di setiap fungsi xmp yang dipakai untuk program fuse ini
+
 ```
 char key[97] = "qE1~ YMUR2\"`hNIdPzi%^t@(Ao:=CQ,nx4S[7mHFye#aT6+v)DfKL$r?bkOGB>}!9_wV']jcp5JZ&Xl|\\8s;g<{3.u*W-0";
 
