@@ -59,7 +59,7 @@ void dec(char* char_dec)
 	}
 }
 ```
-![alt text](https://github.com/paramastri/SoalShift_modul4_F10/blob/master/soal1/1.PNG)
+![alt text](https://github.com/paramastri/SoalShift_modul4_F10/blob/master/1.PNG)
 
 ### 2. 
 
