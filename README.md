@@ -68,6 +68,35 @@ void dec(char* char_dec)
 	}
 }
 ```
+
+```
+static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
+		       off_t offset, struct fuse_file_info *fi)
+{
+	DIR *dp;
+	struct dirent *de;
+
+	(void) offset;
+	(void) fi;
+    char fpath[1000];
+    char name[1000];
+	sprintf(name,"%s",path);
+    enc(name);
+	sprintf(fpath, "%s%s",dirpath,name);
+	dp = opendir(fpath);
+	if (dp == NULL)
+		return -errno;
+
+	while ((de = readdir(dp)) != NULL) { //baca per file di shift4
+		struct stat st;
+        char katak[100000];
+		strcpy(katak,de->d_name);
+		char file[1000];
+		sprintf(file,"%s%s",fpath,katak);
+		dec(katak);
+}
+```
+
 ![alt text](https://github.com/paramastri/SoalShift_modul4_F10/blob/master/1.PNG)
 
 ### 2. 
@@ -99,13 +128,19 @@ Jika ditemukan file dengan spesifikasi tersebut ketika membuka direktori, Atta a
 
 ### Solusi
 
+* Kita buat struct untuk stat username dan group nya
+* Kita beri kondisi ketika username nya chipset atau ic_controller, serta groupname nya rusak dan file tersebut tidak dapat dibaca
+* Apabila memenuhi kondisi tadi, kita buat filemiris.txt yang akan merekam seluruh file dan folder yang terhapus karena terdeteksi sesuai dengan kondisi di atas
+* Untuk pencatatan waktu, kami gunakan variabel time_t dan time(NULL) yang menunjukkan waktu terakhir diaksesnya file/folder tersebut
+* Ada perintah remove(file) untuk menghapus file terindikasi.
+
 Pada fungsi xmp_readdir:
 
 ```
-struct stat tmp;
+		struct stat tmp;
 		stat(file,&tmp);
 		struct passwd *name = getpwuid(tmp.st_uid);
-    	struct group *grup = getgrgid(tmp.st_gid);
+    		struct group *grup = getgrgid(tmp.st_gid);
 		
 		if( (strcmp(name->pw_name,"chipset") == 0 || strcmp(name->pw_name,"ic_controller") == 0) 
 			&& strcmp(grup->gr_name,"rusak")==0 
