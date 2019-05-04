@@ -129,6 +129,7 @@ struct stat tmp;
 		}
 	}
 ```
+![alt text](https://github.com/paramastri/SoalShift_modul4_F10/blob/master/3.PNG)
 
 ### 4. 
 
@@ -225,6 +226,8 @@ static int xmp_chmod(const char *path, mode_t mode)
 	return 0;
 }
 ```
+
+![alt text](https://github.com/paramastri/SoalShift_modul4_F10/blob/master/4.PNG)
 
 ### 5. 
 
