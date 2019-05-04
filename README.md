@@ -171,7 +171,7 @@ Pada fungsi xmp_readdir:
 			if (filler(buf, katak, &st, 0))
 				break;
 		}
-	}
+	
 ```
 ![alt text](https://github.com/paramastri/SoalShift_modul4_F10/blob/master/3.PNG)
 
@@ -181,14 +181,16 @@ Pada folder YOUTUBER, setiap membuat folder permission foldernya akan otomatis m
 
 ### Solusi
 
+Untuk membuat folder, kita perlu xmp_mkdir. Diberi kondisi apabila pembuatan folder ini di dalam folder YOUTUBER, maka otomatis diatur permissionnya 750 dengan ``mkdir(fpath, 0750);``
+
 Membuat folder:
 
 ```
 static int xmp_mkdir(const char *path, mode_t mode)
 {
 	int res;
-    char fpath[1000];
-    char name[1000];
+    	char fpath[1000];
+  	char name[1000];
 	sprintf(name,"%s",path);
 	if(strlen(name)>9 && strncmp(name,"/YOUTUBER",9)==0) // bahwa foldernya di dlm youtuber
 	{
@@ -206,6 +208,7 @@ static int xmp_mkdir(const char *path, mode_t mode)
 	return 0;
 }
 ```
+Untuk membuat file, kita perlu xmp_create. Diberi kondisi apabila pembuatan folder ini di dalam folder YOUTUBER, maka otomatis diberi tambahan .iz1 dibelakang dan diatur permissionnya 640 dengan ``mkdir(fpath, 0640);``
 
 Membuat file:
 
@@ -239,6 +242,7 @@ static int xmp_create(const char* path, mode_t mode, struct fuse_file_info* fi)
 }
 ```
 
+Setiap file permissionnya tidak boleh diubah, sehingga kita kondisikan untuk file yang pastinya berekstensi .iz1 di akhir, akan memunculkan error message ketika diubah permissionnya
 Melarang file yang akan diubah permissionnya:
 
 ```
@@ -253,7 +257,7 @@ static int xmp_chmod(const char *path, mode_t mode)
 		pid_t child1;
 		child1=fork();
 		if(child1==0){
-			execl("/usr/bin/zenity","/usr/bin/zenity","--error","--text=File ekstensi iz1 tidak boleh diubah permissionnya.","--title=Tidak bisa merubah",NULL);
+		execl("/usr/bin/zenity","/usr/bin/zenity","--error","--text=File ekstensi iz1 tidak boleh diubah permissionnya.","--title=Tidak bisa merubah",NULL);
 		}
 		else{
 			wait(NULL);
